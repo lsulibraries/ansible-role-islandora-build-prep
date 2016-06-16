@@ -7,3 +7,9 @@ common_packages:
   - htop
   - emacs 
   - zip
+  - maven2
+  - sysstat
+  - iftop
+
+work_dir: /opt/
+cache_dir: "{{ work_dir }}/cache"

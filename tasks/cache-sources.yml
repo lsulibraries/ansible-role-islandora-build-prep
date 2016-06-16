@@ -1,0 +1,97 @@
+---
+## set up directories
+- name: Ensure work dir exists
+  file:
+    path: "{{ work_dir }}"
+    state: directory
+
+- name: Ensure cache dir exists
+  file:
+    path: "{{ cache_dir }}"
+    state: directory
+
+
+## get controller cache archive if it exists
+- name: Check if file cache exists on the controlling machine.
+  local_action: stat path=roles/build-prep/files/cache.zip 
+  register: local_cache_exists
+  become: false
+
+- name: Check if the cache is already present
+  stat:
+    path: "{{ cache_dir }}/cache.zip"
+  register: cache_zip_exists
+
+- name: If a file cache exists on the controlling machine move it into place.
+  copy:
+    src: files/cache.zip
+    dest: "{{ cache_dir }}"
+  when: local_cache_exists.stat.exists and not cache_zip_exists.stat.exists
+
+- name: unarchive cache
+  unarchive:
+    copy: no
+    src: "{{ cache_dir }}/cache.zip"
+    dest: "{{ cache_dir }}"
+
+## fcrepo
+- name: check if installer is already present
+  stat: 
+    path: "{{ cache_dir }}/fcrepo-installer-{{fedora_version}}.jar"
+  register: cached_fcrepo_jar
+
+- name: Download Fedora from github releases
+  get_url: 
+    url: "https://github.com/fcrepo3/fcrepo/releases/download/v{{fedora_version}}/fcrepo-installer-{{fedora_version}}.jar" 
+    dest: "{{ cache_dir }}/fcrepo-installer-{{fedora_version}}.jar"   
+    sha256sum: "{{ fedora_sha256 }}"
+  when: cached_fcrepo_jar.stat.exists == False
+
+- name: Copy fcrepo installer into place
+  copy:
+    src: "{{ cache_dir }}/fcrepo-installer-{{fedora_version}}.jar"
+    dest: "{{ work_dir }}/fcrepo-installer-{{fedora_version}}.jar"
+    remote_src: true
+
+## djatoka
+- name: check if djatoka src is present
+  stat: 
+    path: "{{ cache_dir }}/adore-djatoka-1.1.tar.gz"
+  register: djatoka
+
+- name: Fetching Djatoka source into djatoka_home
+  get_url: 
+    url: "http://downloads.sourceforge.net/project/djatoka/djatoka/1.1/adore-djatoka-1.1.tar.gz" 
+    dest: "{{ cache_dir }}"
+  when: djatoka.stat.exists == False
+
+- name: unarchive djatoka
+  unarchive:
+    copy: no
+    dest: "{{ work_dir }}"
+    src: "{{ cache_dir }}/adore-djatoka-1.1.tar.gz"
+
+
+## solr
+- name: Check for cached src
+  stat:
+    path: "{{ cache_dir }}/solr-{{solr_version}}.tgz"
+  register: solr_cached_src
+
+- name: Get Solr src
+  get_url:
+    dest: "{{ cache_dir }}/"
+    url: "http://archive.apache.org/dist/lucene/solr/{{solr_version}}/solr-{{solr_version}}.tgz"
+  when: solr_cached_src.stat.exists == False
+
+- name: Check if Solr sources have been downloaded and unzipped already
+  stat: 
+    path: "{{ work_dir }}/solr-{{solr_version}}"
+  register: solr
+
+- name: Get Solr
+  unarchive:
+    copy: no
+    dest: "{{ work_dir }}/"
+    src: "{{ cache_dir }}/solr-{{solr_version}}.tgz"
+  when: solr.stat.exists == False
