@@ -13,7 +13,7 @@
 
 ## get controller cache archive if it exists
 - name: Check if file cache exists on the controlling machine.
-  local_action: stat path=roles/build-prep/files/cache.zip 
+  local_action: stat path=roles/ansible-role-islandora-build-prep/files/cache.zip
   register: local_cache_exists
   become: false
 
