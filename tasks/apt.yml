@@ -7,7 +7,7 @@
   with_items: "{{ common_packages }}"
 
 # Needed for roles/geerlingguy.php
-- name: Install PHP7 repo
-  apt_repository:
-    repo: ppa:ondrej/php
-    state: present
+# - name: Install PHP7 repo
+#   apt_repository:
+#     repo: ppa:ondrej/php
+#     state: present
