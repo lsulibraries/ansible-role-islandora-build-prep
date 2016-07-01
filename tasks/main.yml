@@ -1,3 +1,7 @@
 ---
 - include: apt.yml
 - include: cache-sources.yml
+- name: get mysql
+  apt:
+    name: mysql-client-5.5
+  when: not mysql_local_installation
