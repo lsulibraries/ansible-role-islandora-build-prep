@@ -5,9 +5,9 @@ common_packages:
   - wget
   - tree
   - htop
-  - emacs 
+  - emacs
   - zip
-  - maven2
+  - maven
   - sysstat
   - iftop
 
