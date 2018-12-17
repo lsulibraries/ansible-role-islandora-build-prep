@@ -5,7 +5,7 @@ common_packages:
   - wget
   - tree
   - htop
-  - emacs 
+  - emacs
   - zip
   - maven2
   - sysstat
@@ -13,3 +13,4 @@ common_packages:
 
 work_dir: /opt/
 cache_dir: "{{ work_dir }}/cache"
+solr_home: /mnt/solr

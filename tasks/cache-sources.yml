@@ -28,22 +28,23 @@
     dest: "{{ cache_dir }}"
   when: local_cache_exists.stat.exists and not cache_zip_exists.stat.exists
 
+## fcrepo
+- name: check if installer is already present
+  stat:
+    path: "{{ cache_dir }}/fcrepo-installer-{{fedora_version}}.jar"
+  register: cached_fcrepo_jar
+
 - name: unarchive cache
   unarchive:
     copy: no
     src: "{{ cache_dir }}/cache.zip"
     dest: "{{ cache_dir }}"
-
-## fcrepo
-- name: check if installer is already present
-  stat: 
-    path: "{{ cache_dir }}/fcrepo-installer-{{fedora_version}}.jar"
-  register: cached_fcrepo_jar
+  when: not cached_fcrepo_jar.stat.exists
 
 - name: Download Fedora from github releases
-  get_url: 
-    url: "https://github.com/fcrepo3/fcrepo/releases/download/v{{fedora_version}}/fcrepo-installer-{{fedora_version}}.jar" 
-    dest: "{{ cache_dir }}/fcrepo-installer-{{fedora_version}}.jar"   
+  get_url:
+    url: "https://github.com/fcrepo3/fcrepo/releases/download/v{{fedora_version}}/fcrepo-installer-{{fedora_version}}.jar"
+    dest: "{{ cache_dir }}/fcrepo-installer-{{fedora_version}}.jar"
     sha256sum: "{{ fedora_sha256 }}"
   when: cached_fcrepo_jar.stat.exists == False
 
@@ -55,22 +56,27 @@
 
 ## djatoka
 - name: check if djatoka src is present
-  stat: 
+  stat:
     path: "{{ cache_dir }}/adore-djatoka-1.1.tar.gz"
   register: djatoka
 
 - name: Fetching Djatoka source into djatoka_home
-  get_url: 
-    url: "http://downloads.sourceforge.net/project/djatoka/djatoka/1.1/adore-djatoka-1.1.tar.gz" 
+  get_url:
+    url: "http://downloads.sourceforge.net/project/djatoka/djatoka/1.1/adore-djatoka-1.1.tar.gz"
     dest: "{{ cache_dir }}"
   when: djatoka.stat.exists == False
+
+- name: Have we already untarred djatoka ?
+  stat:
+    path: "{{ work_dir }}/adore-djatoka-1.1"
+  register: djatoka_untarred
 
 - name: unarchive djatoka
   unarchive:
     copy: no
     dest: "{{ work_dir }}"
     src: "{{ cache_dir }}/adore-djatoka-1.1.tar.gz"
-
+  when: not djatoka_untarred.stat.exists
 
 ## solr
 - name: Check for cached src
@@ -85,7 +91,7 @@
   when: solr_cached_src.stat.exists == False
 
 - name: Check if Solr sources have been downloaded and unzipped already
-  stat: 
+  stat:
     path: "{{ work_dir }}/solr-{{solr_version}}"
   register: solr
 
